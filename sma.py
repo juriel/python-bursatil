@@ -3,6 +3,38 @@ import pandas as pd
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 
+
+desired_win = 1.06
+stop_loss   = 0.9
+
+
+desired_loss = 0.94
+stop_short   = 1.1
+
+
+def simulate_buy(price,data):
+    for index, row in data.iterrows():
+        if row["Low"]  < price*stop_loss :
+            return row["Low"]/price
+        if row["High"] > price* desired_win:
+            return   desired_win
+
+    last_row = data.iloc[-1]
+    return last_row["Close"]/price
+
+
+def simulate_sell(price,data):
+    for index, row in data.iterrows():
+        if row["High"]  > price*stop_short :
+            return price/row["High"]
+        if row["Low"] <  price* desired_loss:
+            return   1.0/desired_loss
+    try:
+        last_row = data.iloc[-1]
+        return last_row["Close"]/price
+    except:
+        return -1
+
 # Definir el símbolo de la acción
 ticker_symbol = "NVDA" 
 
@@ -37,18 +69,16 @@ data.loc[ (data[delta_sma_long_colname] < 0) & (data[delta_sma_short_colname] < 
 
 
 
+
+
+
 future_window = 20
 future_high =  'high_'+str(future_window) +'next'
 future_low  =  'low_'+str(future_window) +'next'
 data[future_high] =  data['High'].rolling(future_window).max().shift(-1*future_window)
 data[future_low]  =  data['Low'].rolling(future_window).min().shift(-1*future_window)
 
-desired_win = 1.06
-stop_loss   = 0.9
 
-
-desired_loss = 0.94
-stop_short   = 1.1
 
 
 data['Backtest'] = 'Esperar'      # Valor predeterminado de "Esperar"
@@ -57,6 +87,15 @@ data.loc[ (data[future_low]  < data["Close"]*desired_loss)  & (data[future_high]
 
 
 
+data["simulate"] = 0
+i = 0
+num_rows = data.shape[0]
+for index, row in data.iterrows():
+    if (row["Recomendacion"] == "Compra"):
+        data.at[index,"simulate"] =simulate_buy(row["Close"], data.tail(num_rows-i-1).head(100))
+    if (row["Recomendacion"] == "Venta"):
+        data.at[index,"simulate"] =simulate_sell(row["Close"], data.tail(num_rows-i-1).head(100))        
+    i  = i+1
 
 
 excel_filename = "DATA/"+ticker_symbol + "_historico_precios3.xlsx"
@@ -85,10 +124,16 @@ for index, row in data.iterrows():
 
 for index, row in data.iterrows():
     color = "gray"
-    if row['Backtest'] == 'Compra':
+    print("simulate",row['simulate'], type(row['simulate']))
+    if row['simulate'] > 1 :
+        print("GREEN")
         color = "green"
-    if row['Backtest'] == 'Venta':        
-        color = "red"    
+
+    if 0 < row['simulate'] and row['simulate'] < 1:
+        print("ROJO")
+        color = "red"        
+    #if row['Backtest'] == 'Venta':        
+    #    color = "red"    
     if color != "gray":        
         ax.plot(index, row['Close']*1.03, marker='+', markersize=7, color=color)
 
