@@ -6,46 +6,49 @@ import matplotlib.pyplot as plt
 
 
 # Definir el símbolo de la acción
-TICKER_SYMBOL = "AAPL" 
+TICKER_SYMBOL = "MO" 
 
 
-DESIRED_WIN = 0.06
-STOP_LOSS   = 0.10
-TRAILING_STOP_LOSS = 0.06 
+DESIRED_WIN = 0.05
+STOP_LOSS   = 0.1
+TRAILING_STOP_LOSS = 0.00
 
 
 DESIRED_LOSS = 0.96
 STOP_SHORT   = 1.1
 
 
-def simulate_buy(price,data):
-    print("------------------SIMULATE = ",price)
+def print_percent(close,price):
+    return str(round(((close/price) -1.0)*100.0,2))+ "%"
 
-    print("Price",price)
-    print("next days",data)
+def simulate_buy(price,data):
+    
+
+    
     stop_loss_price = price * (1.0 - STOP_LOSS)
     take_profit = price * (1.0 + DESIRED_WIN)
+    print("------------------SIMULATE = ",price, " Stop Loss ",stop_loss_price," Take Profit ",take_profit)
     status = "LOSER"
     for index, row in data.iterrows():
         if status == "LOSER":
             if row["Low"] <= stop_loss_price:
-                print("STOP LOSS ",stop_loss_price," ", row["Low"] /price)
+                print("STOP LOSS ",round(stop_loss_price,2)," ",print_percent(row["Low"],price))
                 return row["Low"] /price
             elif  row["High"] >= take_profit:
-                print("WINNER ",take_profit,"  ",row["Close"]/price)
+                print("WINNER ",round(take_profit,2),"  ",print_percent(row["Close"],price))
                 status = "WINNER"
                 trailing_stop_loss = row["Close"] * (1.0-TRAILING_STOP_LOSS)
         elif status == "WINNER":
             if row["Low"] <= trailing_stop_loss:
-                print("TRAILING STOP LOSS ",trailing_stop_loss, " ",row["Close"]/price)
+                print("TRAILING STOP LOSS ",trailing_stop_loss, " ",print_percent(row["Close"],price))
                 return row["Low"] /price
             if trailing_stop_loss <  row["Close"] * (1.0-TRAILING_STOP_LOSS):
                 trailing_stop_loss = row["Close"] * (1.0-TRAILING_STOP_LOSS)
 
-        print(index, "Price ",row["Close"],(((row["Close"]/price) -1.0)*100.0), "%")  
+        print(index, "Price ",round(row["Close"],2),print_percent(row["Close"],price))  
         
     last_row = data.iloc[-1]
-    print("EXIT BY TIME ", last_row["Close"])
+    print("EXIT BY TIME ", last_row["Close"],print_percent(row["Close"],price))
     return last_row["Close"] /price
 
 
@@ -111,14 +114,14 @@ for i in range(0,iterations):
 
     #print("selected_rows",selected_row)
 
-    is_time_to_buy = selected_row["d_SMA_40"]  > 0.5 and selected_row["d_SMA_10"] > 0.1
-    print("is_time_to_buy",is_time_to_buy)
+    is_time_to_buy = selected_row["d_SMA_40"]  > 0.05 and selected_row["d_SMA_10"] > 0.005
+    #print("is_time_to_buy",is_time_to_buy)
 
     if is_time_to_buy :
         count = count+1
         tail_size = num_rows - random_index -1
         subset = data.tail(tail_size)
-        profit  = simulate_buy(selected_row["Close"],subset.head(100))
+        profit  = simulate_buy(selected_row["Close"],subset.head(200))
         sum_profit = sum_profit+profit
         print(profit)
         if profit > 1.0:
