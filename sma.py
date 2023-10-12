@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # Definir el símbolo de la acción
-TICKER_SYMBOL = "NVDA" 
+TICKER_SYMBOL = "MO" 
 
 
 DESIRED_WIN = 1.04
