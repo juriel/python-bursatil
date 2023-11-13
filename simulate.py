@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 
 
 # Definir el símbolo de la acción
-TICKER_SYMBOL = "MO" 
+TICKER_SYMBOL = "NVDA" 
 
 
-DESIRED_WIN = 0.1
+DESIRED_WIN = 0.05
 STOP_LOSS   = 0.1
-TRAILING_STOP_LOSS = 0.00
+TRAILING_STOP_LOSS = 0.1
 
 
 DESIRED_LOSS = 0.96
@@ -81,14 +81,14 @@ dias                          = short_sma
 sma_short_colname             = 'SMA_' + str(dias)
 delta_sma_short_colname       = "d_"+sma_short_colname
 data[sma_short_colname]       = data['Close'].rolling(window=dias).mean()
-data[delta_sma_short_colname] = ((data[sma_short_colname] - data[sma_short_colname].shift(1)) / data[sma_short_colname]) * 100
+data[delta_sma_short_colname] = ((data[sma_short_colname] - data[sma_short_colname].shift(2)) / data[sma_short_colname]) * 100
 
 #Calculamos SMA largo
 days                         = long_sma
 sma_long_colname             = 'SMA_' + str(days)
 data[sma_long_colname]       = data['Close'].rolling(window=days).mean()
 delta_sma_long_colname       = "d_"+sma_long_colname
-data[delta_sma_long_colname] = ((data[sma_long_colname] - data[sma_long_colname].shift(1)) / data[sma_long_colname]) * 100
+data[delta_sma_long_colname] = ((data[sma_long_colname] - data[sma_long_colname].shift(2)) / data[sma_long_colname]) * 100
 
 #RSI 
 data['PriceChange'] = data['Close'].diff()
@@ -123,7 +123,7 @@ for i in range(0,iterations):
 
     #print("selected_rows",selected_row)
 
-    is_time_to_buy = selected_row["d_SMA_40"]  > 0 and selected_row["d_SMA_10"] > 0 and selected_row["RSI_"+str(RSI_PERIOD)] < 90
+    is_time_to_buy = selected_row["d_SMA_40"]  > 0 and selected_row["d_SMA_10"] > 0 and selected_row["RSI_"+str(RSI_PERIOD)] < 60
     print("is_time_to_buy",is_time_to_buy)
 
     if is_time_to_buy :
