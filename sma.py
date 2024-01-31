@@ -5,15 +5,18 @@ import matplotlib.pyplot as plt
 
 
 # Definir el símbolo de la acción
-TICKER_SYMBOL = "MO" 
+TICKER_SYMBOL = "GOOG" 
 
 
-DESIRED_WIN = 1.04
-STOP_LOSS   = 0.9
+DESIRED_WIN_PERCENT = 4.0
+STOP_LOSS_PERCENT = 10
+
+DESIRED_WIN = 1.0 + (DESIRED_WIN_PERCENT /100.0)
+STOP_LOSS   = 1.0 - (STOP_LOSS_PERCENT /100.0)
 
 
-DESIRED_LOSS = 0.96
-STOP_SHORT   = 1.1
+DESIRED_LOSS = 1.0 - (DESIRED_WIN_PERCENT /100.0)
+STOP_SHORT   = 1.0 + (STOP_LOSS_PERCENT /100.0)
 
 
 def simulate_buy(price,data):
